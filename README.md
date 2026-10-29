@@ -5,6 +5,10 @@ transaction is fraudulent (1) or normal (0)** from the account's full prior tran
 history. Trained on an anonymized synthetic banking dataset: **1,852,394 transactions,
 999 accounts, 9,651 fraud (0.521%)**.
 
+<p align="center">
+  <img src="figures/fig5_pipeline_flow.png" alt="Laya fraud ensemble — pipeline information flow" width="95%"/>
+</p>
+
 ## Results — locked holdout (15% of accounts, 269,993 rows, 1,452 fraud)
 
 | Model | PR-AUC | ROC-AUC | F1 @ τ\* | Precision @ τ\* | Recall @ τ\* |
@@ -55,8 +59,8 @@ never as model inputs.
 pip install -r requirements.txt
 ```
 
-Single GPU required (any CUDA device; trained on 1× NVIDIA H200 with bfloat16).
-Set `CUDA_VISIBLE_DEVICES` to your GPU id — all scripts honor it.
+Phases 3–4 require a single GPU (any CUDA device; trained on 1× NVIDIA H200 with
+bfloat16). Set `CUDA_VISIBLE_DEVICES` to your GPU id. Phases 1–2 and 5 are CPU-only.
 
 ## Pipeline (run in order)
 
@@ -66,6 +70,7 @@ python 01_inspect_data.py              # schema/imbalance report -> logs/data_in
 python 02_preprocess_and_split.py      # causal features + 5 folds + holdout -> data/
 python 03_train_5fold_laya.py          # 5 splits × 6 epochs (~35 min on H200) -> checkpoints/ + oof_split_k.npz
 python 04_ensemble_infer_and_eval.py   # ensembles, thresholds, report (~2 min) -> ensemble_evaluation_report.json
+python 05_make_figures.py               # CPU-only: 5 figures -> figures/
 ```
 
 Phases 1–2 need the raw CSVs at `<parent>/data/raw_archive/{fraudTrain,fraudTest}.csv`
@@ -96,15 +101,32 @@ the blended ensemble probability (mean of the 5 model probabilities, weighted-lo
 variant in `out["detail"]`), the inter-model std as an uncertainty score, and the OOF
 threshold.
 
+## Figures
+
+`python 05_make_figures.py` (CPU-only) regenerates `figures/` from the committed
+`test_probs.npz` / `oof_ensemble.npz` + `ensemble_evaluation_report.json`:
+
+- `fig1_pr_curves_holdout.png` — Precision-Recall, holdout: ensemble vs the 5 single
+  splits (PR-AUC 0.9059 vs best single 0.8935).
+- `fig2_roc_curves_holdout.png` — ROC, holdout (ROC-AUC 0.9968).
+- `fig3_threshold_operating_points.png` — Precision/recall vs threshold with the two
+  OOF-derived operating points: τ\*=0.46 (max F1) and τ=0.1645 (recall @ FPR≤1%).
+- `fig4_separation_and_confusion.png` — fraud-vs-normal predicted-probability separation
+  and the confusion matrix at τ\*.
+- `fig5_pipeline_flow.png` — information flow: raw data → causal features/splits →
+  5-model training (model internals) → ensemble + thresholds → holdout result / predictor.
+
 ## Repo layout
 
 ```
 01_inspect_data.py 02_preprocess_and_split.py 03_train_5fold_laya.py
-04_ensemble_infer_and_eval.py   laya_model.py  laya_ensemble_predictor.py
+04_ensemble_infer_and_eval.py 05_make_figures.py
+laya_model.py laya_ensemble_predictor.py
 data/          dev.parquet test.parquet fold_mapping.parquet meta.json
 checkpoints/   laya_split_{0..4}_best.pt  val_pr_auc.json
 oof_split_{0..4}.npz oof_ensemble.npz test_probs.npz
 logs/          data_inspection_report.json train_*.log/jsonl eval_all.log
+figures/       fig1..fig5 (PR/ROC curves, thresholds, confusion, pipeline flow)
 ensemble_evaluation_report.json
 ```
 
