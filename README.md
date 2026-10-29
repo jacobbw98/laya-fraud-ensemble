@@ -113,8 +113,11 @@ threshold.
   OOF-derived operating points: τ\*=0.46 (max F1) and τ=0.1645 (recall @ FPR≤1%).
 - `fig4_separation_and_confusion.png` — fraud-vs-normal predicted-probability separation
   and the confusion matrix at τ\*.
-- `fig5_pipeline_flow.png` — information flow: raw data → causal features/splits →
-  5-model training (model internals) → ensemble + thresholds → holdout result / predictor.
+- `fig5_pipeline_flow.png` — information flow **inside the ensemble model**: input
+  tensors (`x_hist` (B,256,16) f32 + mask bool, `x_target` (B,16) f32, 16 causal
+  features with dtypes) → the 7 stages of `LayaFraudDecisionNet` (× 5 independent split
+  models) → p_0..p_4 → ensemble aggregation → per-transaction output (`is_fraud`,
+  `fraud_probability`, `ensemble_std`, `threshold`).
 
 ## Repo layout
 

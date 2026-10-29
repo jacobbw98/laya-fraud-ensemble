@@ -6,7 +6,7 @@ Writes: figures/fig1_pr_curves_holdout.png
         figures/fig2_roc_curves_holdout.png
         figures/fig3_threshold_operating_points.png
         figures/fig4_separation_and_confusion.png
-        figures/fig5_pipeline_flow.png
+        figures/fig5_pipeline_flow.png   (model data-flow diagram)
 """
 import json
 import os
@@ -167,61 +167,108 @@ def _arrow(ax, x0, y0, x1, y1):
 
 
 def fig5_flow():
-    fig, ax = plt.subplots(figsize=(16.5, 9.5))
+    fig, ax = plt.subplots(figsize=(17.5, 10.5))
     ax.set_xlim(-0.03, 1.035)
-    ax.set_ylim(-0.045, 1.03)
+    ax.set_ylim(-0.095, 1.03)
     ax.axis("off")
-    ax.set_title("Information flow — Laya fraud ensemble pipeline",
-                 fontsize=14, weight="bold", pad=18)
-    _box(ax, 0.010, 0.30, 0.105, 0.42,
-         "RAW DATA\nieee-fraud-detection CSV\n1.85M transactions\n999 accounts\n"
-         "0.521% fraud (not in repo)", "#f3f4f6", "#9ca3af", fs=8.5)
-    _box(ax, 0.140, 0.30, 0.105, 0.42,
-         "01_inspect_data.py\nschema, dtypes,\nimbalance, account\ndistribution",
-         "#e0f2fe", "#0284c7", fs=8.5)
-    _box(ax, 0.270, 0.30, 0.135, 0.42,
-         "02_preprocess_and_split.py\n16 CAUSAL features per txn\n"
-         "(z-score, velocity 1h/24h/7d, time,\ntime-of-day — prior txns only)\n"
-         "StratifiedGroupKFold on cc_num\n85% dev → 5 folds | 15% holdout",
-         "#e0f2fe", "#0284c7", fs=8.5)
-    _box(ax, 0.430, 0.20, 0.215, 0.62,
-         "03_train_5fold_laya.py — 5 independent LayaFraudDecisionNet\n"
-         "each model: unseen-folds train → val fold, best by val PR-AUC\n\n"
-         "MODEL (per split, ~0.65M params)\n"
-         "  16-d features × last 256 txns (+ target)\n"
-         "  → encoder: Linear · LayerNorm · GELU + positional emb\n"
-         "  → 4× causal Transformer (SDPA, is_causal=True)\n"
-         "  → target txn queries history via cross-attention\n"
-         "  → MLP → fraud logit z_k\n\n"
-         "focal loss γ=2 · AdamW lr 3e-4 · cosine · bf16\n"
-         "6 epochs · per-split StandardScaler",
-         "#fef3c7", "#d97706", fs=8.5)
-    _box(ax, 0.680, 0.20, 0.165, 0.62,
-         "04_ensemble_infer_and_eval.py\n"
-         "per txn: 5 probabilities p_0..p_4\n\n"
-         "ensemble = mean(p_k)  (primary)\n"
-         "         = PR-AUC-weighted logit (alt)\n\n"
-         "uncertainty = std(p_0..p_4) per txn\n\n"
-         "thresholds from STRICT OOF:\n"
-         "τ* = 0.46  → max F1\n"
-         "τ  = 0.1645 → recall @ FPR ≤ 1%",
-         "#e0f2fe", "#0284c7", fs=8.5)
-    _box(ax, 0.870, 0.20, 0.120, 0.62,
-         "HOLDOUT RESULT\n(150 unseen accounts)\n\n"
-         "PR-AUC 0.9059\nROC-AUC 0.9968\n\n"
-         "F1 0.8413 @ τ*\n(P 0.940 / R 0.761)\n\n"
-         "recall 94.4%\n@ FPR ≤ 1%",
-         "#dcfce7", "#16a34a", fs=8.5, bold=True)
-    _box(ax, 0.430, 0.02, 0.415, 0.13,
-         "laya_ensemble_predictor.py — predict_transaction(account_history_df)\n"
-         "loads 5 ckpts + scalers → recomputes causal features → "
-         "{is_fraud, fraud_probability, ensemble_std, threshold}",
-         "#ede9fe", "#7c3aed", fs=8.5)
-    for x0, x1 in [(0.115, 0.140), (0.245, 0.270), (0.405, 0.430),
-                   (0.645, 0.680), (0.845, 0.870)]:
-        _arrow(ax, x0, 0.51, x1, 0.51)
-    _arrow(ax, 0.540, 0.20, 0.540, 0.15)
-    fig.subplots_adjust(left=0.01, right=0.99, top=0.90, bottom=0.03)
+    ax.set_title("Information flow inside the ensemble model — input (data + dtypes) → 5 Laya models → outputs",
+                 fontsize=13, weight="bold", pad=18)
+    # ---------------- INPUT zone ----------------
+    _box(ax, 0.010, 0.865, 0.225, 0.095,
+         "INPUT — one row per target transaction (batch B, e.g. 1024)",
+         "#f3f4f6", "#9ca3af", fs=8.5, bold=True)
+    _box(ax, 0.010, 0.635, 0.225, 0.205,
+         "ACCOUNT'S LAST 256 PAST TRANSACTIONS\n"
+         "x_hist (B, 256, 16) · float32 · front-padded\n"
+         "mask (B, 256) · bool (True = valid txn)\n"
+         "chronological, oldest → newest", "#e0f2fe", "#0284c7", fs=8)
+    _box(ax, 0.010, 0.435, 0.225, 0.135,
+         "TARGET TRANSACTION (being judged)\n"
+         "x_target (B, 16) · float32 · same 16 features", "#e0f2fe", "#0284c7", fs=8)
+    _box(ax, 0.010, 0.055, 0.225, 0.335,
+         "THE 16 FEATURES (all float32, causal —\nfrom the account's own PRIOR txns only):\n"
+         "  time_delta_sec_log · log_amount · amount_z\n"
+         "  exp_mean_amt · exp_std_amt · amt_to_mean_ratio\n"
+         "  vel_cnt / vel_sum @ 1h, 24h, 7d   (6)\n"
+         "  hod_sin/hod_cos · dow_sin/dow_cos\n"
+         "source: int64 unix_time + float64 amount;\n"
+         "amount_z via per-split StandardScaler;\n"
+         "identifiers (cc_num, …) are NOT features", "#f9fafb", "#d1d5db", fs=7.5)
+    # ---------------- MODEL zone ----------------
+    _box(ax, 0.275, 0.865, 0.340, 0.095,
+         "MODEL — LayaFraudDecisionNet · split k\n"
+         "× 5 independent copies (same arch · ~0.65M params;\ncopy k is trained only on the other 4 folds)",
+         "#fef3c7", "#d97706", fs=8.5, bold=True)
+    _box(ax, 0.275, 0.715, 0.340, 0.115,
+         "① TOKEN ENCODING\n"
+         "Linear(16→128) → LayerNorm → GELU + learned pos emb;\n"
+         "prepend learnable NOHIST token\n"
+         "→ h (B, 257, 128) · float32", "#fffbeb", "#f59e0b", fs=8)
+    _box(ax, 0.275, 0.560, 0.340, 0.12,
+         "② CAUSAL BACKBONE × 4 (Pre-LN Transformer blocks)\n"
+         "8-head scaled_dot_product_attention, is_causal + padding mask;\n"
+         "FFN 128→256→128 · GELU · dropout 0.1 · residual adds\n"
+         "→ h (B, 257, 128) · float32  (each position sees only the past)",
+         "#fffbeb", "#f59e0b", fs=8)
+    _box(ax, 0.275, 0.425, 0.340, 0.095,
+         "③ TARGET TOKEN\n"
+         "token_enc(x_target) + pos_target → q (B, 1, 128) · float32",
+         "#fffbeb", "#f59e0b", fs=8)
+    _box(ax, 0.275, 0.265, 0.340, 0.125,
+         "④ LAYA DECISION CROSS-ATTENTION (target queries history)\n"
+         "Q = LN(q) proj 8×16;  K,V = LN(h) proj 8×16;  masked SDPA\n"
+         "→ (B, 128) + residual q + LayerNorm\n"
+         "→ anomaly vector a (B, 128) · float32", "#fffbeb", "#f59e0b", fs=8)
+    _box(ax, 0.275, 0.155, 0.340, 0.07,
+         "⑤ CONCATENATION   feat = [a ‖ q] → (B, 256) · float32",
+         "#fffbeb", "#f59e0b", fs=8)
+    _box(ax, 0.275, 0.045, 0.340, 0.075,
+         "⑥ MLP HEAD   Linear(256→128) → GELU → Dropout(0.1) → Linear(128→1)\n"
+         "→ fraud logit z_k (B,) · float32", "#fffbeb", "#f59e0b", fs=8)
+    _box(ax, 0.275, -0.055, 0.340, 0.07,
+         "⑦ SIGMOID   p_k = σ(z_k) → (B,) · float32 ∈ (0, 1)",
+         "#fef9c3", "#ca8a04", fs=8.5, bold=True)
+    # ---------------- ENSEMBLE / OUTPUT zone ----------------
+    _box(ax, 0.655, 0.865, 0.330, 0.095,
+         "ENSEMBLE — 5 independent split models;\nmean of probabilities is the final fraud score",
+         "#f3f4f6", "#9ca3af", fs=8.5, bold=True)
+    _box(ax, 0.655, -0.055, 0.330, 0.07,
+         "5 models × every target   p_0 … p_4 → (N, 5) · float32\n"
+         "[N = #target txns; holdout N = 269,993]",
+         "#e0f2fe", "#0284c7", fs=8, bold=True)
+    _box(ax, 0.655, 0.095, 0.330, 0.20,
+         "AGGREGATION (per target txn · float32)\n"
+         "  mean_prob = mean(p_0…p_4)        ← primary score\n"
+         "  p_w = σ( Σ_k w_k·z_k / Σ_k w_k ),   w_k = val PR-AUC of split k\n"
+         "  uncertainty = std(p_0…p_4)   (epistemic)", "#e0f2fe", "#0284c7", fs=8)
+    _box(ax, 0.655, 0.365, 0.330, 0.315,
+         "OUTPUT — per target transaction\n"
+         "  is_fraud:          int (0/1) = 1{ mean_prob ≥ 0.46 }\n"
+         "  fraud_probability: float32 ∈ (0, 1)\n"
+         "  ensemble_std:      float32 (inter-model disagreement)\n"
+         "  threshold:         0.46 (max-F1 on strict OOF)\n"
+         "  detail: per-model probs + weighted-logit variant\n"
+         "predictor variant: fraud_probability = 50/50 blend of\nmean_prob and p_w",
+         "#dcfce7", "#16a34a", fs=8, bold=True)
+    _box(ax, 0.655, 0.755, 0.330, 0.13,
+         "HOLDOUT SCORE (150 unseen accounts)\n"
+         "PR-AUC 0.9059 · ROC-AUC 0.9968\n"
+         "F1 0.8413 @ τ* (P 0.940 / R 0.761) · recall 94.4% @ FPR ≤ 1%",
+         "#dcfce7", "#16a34a", fs=8)
+    # ---------------- arrows ----------------
+    _arrow(ax, 0.445, 0.865, 0.445, 0.830)
+    _arrow(ax, 0.445, 0.715, 0.445, 0.680)
+    _arrow(ax, 0.445, 0.560, 0.445, 0.520)
+    _arrow(ax, 0.445, 0.425, 0.445, 0.390)
+    _arrow(ax, 0.445, 0.265, 0.445, 0.225)
+    _arrow(ax, 0.445, 0.155, 0.445, 0.120)
+    _arrow(ax, 0.445, 0.045, 0.445, 0.015)
+    _arrow(ax, 0.235, 0.7375, 0.275, 0.7725)   # x_hist -> token encoding
+    _arrow(ax, 0.235, 0.5025, 0.275, 0.4725)   # x_target -> target token
+    _arrow(ax, 0.615, -0.02, 0.655, -0.02)     # p_k -> (N,5)
+    _arrow(ax, 0.820, 0.015, 0.820, 0.095)     # (N,5) -> aggregation
+    _arrow(ax, 0.820, 0.295, 0.820, 0.365)     # aggregation -> output
+    fig.subplots_adjust(left=0.01, right=0.99, top=0.90, bottom=0.02)
     fig.savefig(os.path.join(FIG_DIR, "fig5_pipeline_flow.png"))
     plt.close(fig)
 
