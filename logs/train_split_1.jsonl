@@ -1,0 +1,6 @@
+{"split": 1, "epoch": 1, "loss": 0.00421, "val_pr_auc": 0.79972, "val_roc_auc": 0.98951, "batch_size": 1024, "sec": 52.8, "peak_gpu_gb": 4.46}
+{"split": 1, "epoch": 2, "loss": 0.0025, "val_pr_auc": 0.83178, "val_roc_auc": 0.99287, "batch_size": 1024, "sec": 119.7, "peak_gpu_gb": 4.46}
+{"split": 1, "epoch": 3, "loss": 0.00203, "val_pr_auc": 0.87591, "val_roc_auc": 0.99527, "batch_size": 1024, "sec": 164.3, "peak_gpu_gb": 4.46}
+{"split": 1, "epoch": 4, "loss": 0.00162, "val_pr_auc": 0.89109, "val_roc_auc": 0.99585, "batch_size": 1024, "sec": 208.8, "peak_gpu_gb": 4.46}
+{"split": 1, "epoch": 5, "loss": 0.00141, "val_pr_auc": 0.89792, "val_roc_auc": 0.99554, "batch_size": 1024, "sec": 253.2, "peak_gpu_gb": 4.46}
+{"split": 1, "epoch": 6, "loss": 0.00125, "val_pr_auc": 0.89994, "val_roc_auc": 0.99596, "batch_size": 1024, "sec": 297.4, "peak_gpu_gb": 4.46}

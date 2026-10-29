@@ -1,0 +1,6 @@
+# Exact versions used to train/evaluate this repo (verified, Python 3.10, CUDA)
+numpy==1.26.4
+pandas==2.3.3
+pyarrow==25.0.1
+scikit-learn==1.7.2
+torch==2.12.0

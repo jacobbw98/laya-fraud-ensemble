@@ -1,0 +1,43 @@
+[init] cuda:0 = NVIDIA H200 NVL, free=149.6GB
+[data] dev rows=1582401, model features=16, fraud=8199 (0.00518)
+[split 0] train=1254633 (fraud 6572) val=327768 (fraud 1627)
+[split 0 ep 1] loss=0.00409 pr=0.79092 roc=0.98383 bs=1024 146.6s
+[split 0 ep 2] loss=0.00219 pr=0.82615 roc=0.98851 bs=1024 190.6s
+[split 0 ep 3] loss=0.00187 pr=0.84964 roc=0.99093 bs=1024 234.7s
+[split 0 ep 4] loss=0.00161 pr=0.86034 roc=0.99153 bs=1024 278.9s
+[split 0 ep 5] loss=0.00143 pr=0.86550 roc=0.99152 bs=1024 326.0s
+[split 0 ep 6] loss=0.0013 pr=0.86915 roc=0.99146 bs=1024 385.3s
+[split 0] done: best pr=0.86915 @ep6, params=0.65M, 392s
+[split 1] train=1273395 (fraud 6470) val=309006 (fraud 1729)
+[split 1 ep 1] loss=0.00421 pr=0.79972 roc=0.98951 bs=1024 52.8s
+[split 1 ep 2] loss=0.0025 pr=0.83178 roc=0.99287 bs=1024 119.7s
+[split 1 ep 3] loss=0.00203 pr=0.87591 roc=0.99527 bs=1024 164.3s
+[split 1 ep 4] loss=0.00162 pr=0.89109 roc=0.99585 bs=1024 208.8s
+[split 1 ep 5] loss=0.00141 pr=0.89792 roc=0.99554 bs=1024 253.2s
+[split 1 ep 6] loss=0.00125 pr=0.89994 roc=0.99596 bs=1024 297.4s
+[split 1] done: best pr=0.89994 @ep6, params=0.65M, 302s
+[split 2] train=1258890 (fraud 6576) val=323511 (fraud 1623)
+[split 2 ep 1] loss=0.00442 pr=0.76545 roc=0.98709 bs=1024 47.2s
+[split 2 ep 2] loss=0.00263 pr=0.80609 roc=0.99157 bs=1024 91.2s
+[split 2 ep 3] loss=0.00216 pr=0.86516 roc=0.99452 bs=1024 139.6s
+[split 2 ep 4] loss=0.00173 pr=0.88479 roc=0.99541 bs=1024 198.8s
+[split 2 ep 5] loss=0.00149 pr=0.89074 roc=0.99595 bs=1024 252.6s
+[split 2 ep 6] loss=0.00132 pr=0.89231 roc=0.99616 bs=1024 302.5s
+[split 2] done: best pr=0.89231 @ep6, params=0.65M, 307s
+[split 3] train=1277205 (fraud 6635) val=305196 (fraud 1564)
+[split 3 ep 1] loss=0.00406 pr=0.76547 roc=0.98102 bs=1024 48.0s
+[split 3 ep 2] loss=0.00229 pr=0.83904 roc=0.98909 bs=1024 92.3s
+[split 3 ep 3] loss=0.00177 pr=0.86528 roc=0.99199 bs=1024 136.8s
+[split 3 ep 4] loss=0.00148 pr=0.87369 roc=0.99302 bs=1024 181.4s
+[split 3 ep 5] loss=0.00128 pr=0.87409 roc=0.99273 bs=1024 226.0s
+[split 3 ep 6] loss=0.00114 pr=0.87589 roc=0.99277 bs=1024 270.3s
+[split 3] done: best pr=0.87589 @ep6, params=0.65M, 275s
+[split 4] train=1265481 (fraud 6543) val=316920 (fraud 1656)
+[split 4 ep 1] loss=0.00402 pr=0.78635 roc=0.98797 bs=1024 45.5s
+[split 4 ep 2] loss=0.00232 pr=0.85475 roc=0.99189 bs=1024 89.8s
+[split 4 ep 3] loss=0.00187 pr=0.87763 roc=0.99475 bs=1024 134.0s
+[split 4 ep 4] loss=0.00161 pr=0.89757 roc=0.99547 bs=1024 178.2s
+[split 4 ep 5] loss=0.00141 pr=0.90185 roc=0.99550 bs=1024 222.6s
+[split 4 ep 6] loss=0.00128 pr=0.90327 roc=0.99513 bs=1024 267.1s
+[split 4] done: best pr=0.90327 @ep6, params=0.65M, 272s
+[done] val PR-AUC per split: {0: 0.8691511291824107, 1: 0.8999407453279531, 2: 0.8923146504977666, 3: 0.8758913999343286, 4: 0.9032695821843867} -> /root/roell_koastore/data_anal/Fraud_Pred/laya_ensemble_pipeline/checkpoints/val_pr_auc.json

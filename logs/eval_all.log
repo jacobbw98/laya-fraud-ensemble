@@ -1,0 +1,29 @@
+[load] split 0: val_pr_auc=0.86915 best_epoch=6 params=0.65M
+[load] split 1: val_pr_auc=0.89994 best_epoch=6 params=0.65M
+[load] split 2: val_pr_auc=0.89231 best_epoch=6 params=0.65M
+[load] split 3: val_pr_auc=0.87589 best_epoch=6 params=0.65M
+[load] split 4: val_pr_auc=0.90327 best_epoch=6 params=0.65M
+[weights] pr_auc weights = [0.86915, 0.89994, 0.89231, 0.87589, 0.90327]
+[test] rows=269993 fraud=1452 (0.00538)
+{
+  "thresholds": {
+    "tau_star_max_f1_oof": 0.46,
+    "oof_f1_at_tau_star": 0.8400527009222661,
+    "tau_recall_at_1pct_fpr": 0.16451646387577057,
+    "oof_recall_at_tau_r1": 0.9348701061105013,
+    "oof_fpr_at_tau_r1": 0.009999987295150177,
+    "note": "thresholds derived from strict-OOF ensemble probabilities (each dev row scored by the model that held it out)"
+  },
+  "ensemble_gain": {
+    "best_single_split": "split_0",
+    "best_single_pr_auc": 0.8934860381262199,
+    "ensemble_mean_pr_auc": 0.9059022556807672,
+    "ensemble_weighted_pr_auc": 0.9048465480086718,
+    "pr_auc_gain_mean_vs_best": 0.01241621755454736,
+    "roc_gain_mean_vs_best": 0.0005904470030652087
+  }
+}
+[test] split0 roc=0.9962 pr=0.8935
+[test] mean-ens roc=0.9968 pr=0.9059
+[test] wt-ens   roc=0.9968 pr=0.9048
+[done] 119s -> /root/roell_koastore/data_anal/Fraud_Pred/laya_ensemble_pipeline/ensemble_evaluation_report.json
