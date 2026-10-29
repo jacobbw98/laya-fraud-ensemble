@@ -1,0 +1,2 @@
+=== split 0: train 1683695 (fraud 20570) / val 413600 (fraud 5067) params 5203713 compiled=True
+split 0 ep 1: train PR 0.3230 ROC 0.9394 | val PR 0.3046 ROC 0.9354

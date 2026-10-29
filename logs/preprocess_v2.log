@@ -1,0 +1,10 @@
+[A] 1852394 rows, 999 accounts, fraud=9651
+[I] 590540 rows, 590540 accounts, fraud=20663
+[comb] 2442934 rows, 591539 accounts, fraud=30314
+[split] holdout: 88731 accounts, 345639 rows, fraud=4677 (A=257064 rows, I=88575 rows)
+  fold 0: 413600 rows, 100582 accts, fraud=5067
+  fold 1: 423823 rows, 100516 accts, fraud=5164
+  fold 2: 414928 rows, 100529 accts, fraud=5011
+  fold 3: 421737 rows, 100550 accts, fraud=5255
+  fold 4: 423207 rows, 100631 accts, fraud=5140
+[done] 108.0s -> /mnt/lustre/koa/koastore/roell_group/Code2/laya-fraud-ensemble/data_v2
